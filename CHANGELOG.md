@@ -5,6 +5,22 @@ All notable changes to **LongParser** are documented here.
 This project follows [Semantic Versioning](https://semver.org/) and
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — planned 0.1.6
+
+### Changed
+
+- CI now enforces all configured Ruff rules, with reviewed import and Python 3.10+ annotation cleanup.
+- FastAPI dependency defaults retain their existing behavior through a targeted `B008` exception for the server application.
+- The license check detects bare and dotted Marker imports in core files while retaining the two isolated extractor exceptions.
+- Added regression tests that execute the actual license-check workflow script and verify lightweight imports in a fresh Python process.
+
+### Fixed
+
+- Optional-backend installation errors now explicitly retain their original exception causes.
+- Vector insertion explicitly uses `zip(strict=False)` to preserve existing truncation behavior.
+
+---
+
 ## [0.1.5] — 2026-05-05
 
 ### Added

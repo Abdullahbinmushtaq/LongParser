@@ -44,7 +44,7 @@ def _require_marker():
     try:
         import marker
         return marker
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "\n"
             "╔══════════════════════════════════════════════════════════╗\n"
@@ -56,7 +56,7 @@ def _require_marker():
             "║  By installing it, you agree to GPL terms for that     ║\n"
             "║  component. LongParser core remains MIT-licensed.      ║\n"
             "╚══════════════════════════════════════════════════════════╝\n"
-        )
+        ) from err
 
 
 class MarkerExtractor(BaseExtractor):
@@ -115,13 +115,17 @@ class MarkerExtractor(BaseExtractor):
         except ImportError:
             is_cpu = True
 
-        if is_cpu and not config.force_marker_cpu and total_pages > 10:
-            if page_numbers is None or len(page_numbers) > 10:
-                raise RuntimeError(
-                    f"Marker CPU Soft Cap exceeded. Document has {total_pages} pages "
-                    f"(limit: 10). Extraction will take too long on CPU. "
-                    f"Set config.force_marker_cpu=True to override."
-                )
+        if (
+            is_cpu
+            and not config.force_marker_cpu
+            and total_pages > 10
+            and (page_numbers is None or len(page_numbers) > 10)
+        ):
+            raise RuntimeError(
+                f"Marker CPU Soft Cap exceeded. Document has {total_pages} pages "
+                f"(limit: 10). Extraction will take too long on CPU. "
+                f"Set config.force_marker_cpu=True to override."
+            )
 
         file_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()[:16]
 
@@ -176,7 +180,7 @@ class MarkerExtractor(BaseExtractor):
         order_idx = 0
         
         # Fast parse
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             stripped = line.strip()
             if not stripped:
                 continue

@@ -69,7 +69,7 @@ def _require_pymupdf():
     try:
         import pymupdf4llm
         return pymupdf4llm
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "\n"
             "╔══════════════════════════════════════════════════════════╗\n"
@@ -84,7 +84,7 @@ def _require_pymupdf():
             "║  For commercial use without AGPL obligations, purchase ║\n"
             "║  a license from https://artifex.com                    ║\n"
             "╚══════════════════════════════════════════════════════════╝\n"
-        )
+        ) from err
 
 
 def _require_pymupdf_fitz():
@@ -96,11 +96,11 @@ def _require_pymupdf_fitz():
         try:
             import fitz
             return fitz
-        except ImportError:
+        except ImportError as err:
             raise ImportError(
                 "PyMuPDF (fitz) is required for the pymupdf backend. "
                 "Install with: pip install 'longparser[pymupdf]'"
-            )
+            ) from err
 
 
 class PyMuPDFExtractor(BaseExtractor):

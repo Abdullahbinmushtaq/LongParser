@@ -1126,18 +1126,16 @@ async def resume_chat(
         edited_answer=req.edited_answer,
     )
 
-    # If the answer was edited or approved, update the saved turn
-    if result.get("status") == "complete":
-        # Update the last turn's answer if edited
-        if req.action == "edit" and req.edited_answer:
-            await db.chat_turns.find_one_and_update(
-                {
-                    "tenant_id": tenant_id,
-                    "session_id": req.session_id,
-                },
-                {"$set": {"answer": req.edited_answer}},
-                sort=[("created_at", -1)],
-            )
+    # Update the last turn's answer after a completed edit.
+    if result.get("status") == "complete" and req.action == "edit" and req.edited_answer:
+        await db.chat_turns.find_one_and_update(
+            {
+                "tenant_id": tenant_id,
+                "session_id": req.session_id,
+            },
+            {"$set": {"answer": req.edited_answer}},
+            sort=[("created_at", -1)],
+        )
 
     sources = [SourceRef(**s) for s in result.get("sources", [])]
 

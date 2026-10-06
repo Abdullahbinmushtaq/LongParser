@@ -15,8 +15,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ruff
-      - name: Check for real errors (E, F rules — no style nits)
-        run: ruff check . --select E,F --ignore E501,F401,E402,F541
+      - name: Check configured Ruff rules
+        run: ruff check .
 
   test:
     runs-on: ubuntu-latest

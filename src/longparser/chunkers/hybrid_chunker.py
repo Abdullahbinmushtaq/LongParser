@@ -338,7 +338,7 @@ def _generate_schema_chunk(
     # Sample rows (first 3–5)
     sample_count = min(5, n_data)
     sample_rows = []
-    for i, r_idx in enumerate(data_row_indices[:sample_count]):
+    for _i, r_idx in enumerate(data_row_indices[:sample_count]):
         row_data = grid.get(r_idx, {})
         parts = [f"{col_names[c]}={row_data.get(c, '')}" for c in range(n_cols)]
         sample_rows.append(f"  Row {r_idx}: " + "; ".join(parts))
@@ -407,7 +407,7 @@ def _chunk_table(block: Block, config: ChunkingConfig) -> list[Chunk]:
     
     # Data rows = all rows not in header
     header_set = set(header_rows)
-    data_row_indices = sorted(r for r in grid.keys() if r not in header_set)
+    data_row_indices = sorted(r for r in grid if r not in header_set)
     
     # Fix E + Gap #5: Schema chunk
     if config.generate_schema_chunks and data_row_indices:
@@ -430,14 +430,12 @@ def _chunk_table(block: Block, config: ChunkingConfig) -> list[Chunk]:
         bands = [list(range(n_cols))]  # Single band with all columns
     
     # Process each band
-    for band_idx, band_cols in enumerate(bands):
+    for _band_idx, band_cols in enumerate(bands):
         band_col_names = [col_names[c] for c in band_cols]
         
         # Build header text for pipe format
-        if config.table_chunk_format == "pipe":
-            header_text = " | ".join(band_col_names)
-        else:
-            header_text = ""  # Not needed for row_record; names are inline
+        # Row records contain names inline and do not need a header.
+        header_text = " | ".join(band_col_names) if config.table_chunk_format == "pipe" else ""
         
         # Fix C: Token-aware row batching
         current_row_texts: list[str] = []

@@ -61,10 +61,10 @@ class ChromaStore(BaseVectorStore):
     ):
         try:
             import chromadb
-        except ImportError:
+        except ImportError as err:
             raise ImportError(
                 "chromadb is required. Install: pip install longparser[chroma]"
-            )
+            ) from err
 
         # Securely isolate vector spaces based on model config
         if index_fingerprint:
@@ -162,10 +162,10 @@ class FAISSStore(BaseVectorStore):
     ):
         try:
             import faiss  # noqa: F401
-        except ImportError:
+        except ImportError as err:
             raise ImportError(
                 "faiss-cpu is required. Install: pip install longparser[faiss-cpu]"
-            )
+            ) from err
 
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
@@ -297,10 +297,10 @@ class QdrantStore(BaseVectorStore):
                 Distance,
                 VectorParams,
             )
-        except ImportError:
+        except ImportError as err:
             raise ImportError(
                 "qdrant-client is required. Install: pip install longparser[qdrant]"
-            )
+            ) from err
 
         self.client = QdrantClient(url=url)
         # Securely isolate vector spaces based on model config
@@ -346,7 +346,9 @@ class QdrantStore(BaseVectorStore):
         self._ensure_collection(dim)
 
         points = []
-        for i, (vid, emb, meta, doc) in enumerate(zip(ids, embeddings, metadatas, documents)):
+        for i, (vid, emb, meta, doc) in enumerate(
+            zip(ids, embeddings, metadatas, documents, strict=False)
+        ):
             # Flatten lists in payload for Qdrant filtering
             payload = {**meta, "document": doc}
             for k, v in payload.items():

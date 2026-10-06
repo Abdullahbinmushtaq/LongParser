@@ -266,10 +266,9 @@ class DoclingExtractor(BaseExtractor):
                             latex_len = len(latex.strip())
                             
                             # Asymmetric gate: allow if Docling text is empty/garbled
-                            if orig_len < 3 and latex_len > 3:
-                                block.text = f"$${latex}$$"
-                                injected += 1
-                            elif latex_len > 0 and 0.2 <= (orig_len + 5) / (latex_len + 5) <= 5.0:
+                            if (orig_len < 3 and latex_len > 3) or (
+                                latex_len > 0 and 0.2 <= (orig_len + 5) / (latex_len + 5) <= 5.0
+                            ):
                                 block.text = f"$${latex}$$"
                                 injected += 1
                             else:
@@ -300,7 +299,7 @@ class DoclingExtractor(BaseExtractor):
                 # Apply normalization if Fast mode (to make unicode math nicer)
                 if config.formula_mode == "fast":
                     _keys = list(result.document.pages.keys())  # snapshot (unused; iteration below)
-                    for _, page in result.document.pages.items():
+                    for _, _page in result.document.pages.items():
                          # Iterate all items on page
                          # We can't easily modify text in-place efficiently without iterating items
                          pass 
@@ -703,7 +702,7 @@ class DoclingExtractor(BaseExtractor):
         # Step 2: Compute average span for each marker type
         # Parent groups have LARGER spans (children fill the gaps)
         type_positions = {}
-        for idx, (text, mtype) in enumerate(text_info):
+        for idx, (_text, mtype) in enumerate(text_info):
             if mtype and mtype in active_types:
                 type_positions.setdefault(mtype, []).append(idx)
         
@@ -767,7 +766,7 @@ class DoclingExtractor(BaseExtractor):
         heading_heights = {}  # text -> height
         heading_order = []    # preserve document order
         
-        for item, level in docling_doc.iterate_items():
+        for item, _level in docling_doc.iterate_items():
             if isinstance(item, SectionHeaderItem):
                 text = getattr(item, 'text', '')
                 if not text:
@@ -1296,12 +1295,10 @@ class DoclingExtractor(BaseExtractor):
             # For PPTX: skip font-size clustering, use simple heading levels
             # All slide titles become h2 (since they're all peer-level slides)
             heading_to_level = {}
-            for item, level in docling_doc.iterate_items():
-                if isinstance(item, SectionHeaderItem):
-                    text = getattr(item, 'text', '')
-                    if text:
-                        heading_to_level[text] = 2  # All PPTX titles = h2
-                elif TitleItem is not None and isinstance(item, TitleItem):
+            for item, _level in docling_doc.iterate_items():
+                if isinstance(item, SectionHeaderItem) or (
+                    TitleItem is not None and isinstance(item, TitleItem)
+                ):
                     text = getattr(item, 'text', '')
                     if text:
                         heading_to_level[text] = 2  # All PPTX titles = h2
@@ -1447,14 +1444,13 @@ class DoclingExtractor(BaseExtractor):
         # so we can skip them when they appear as standalone items.
         table_child_refs: set = set()
         for item, _level in docling_doc.iterate_items():
-            if isinstance(item, TableItem):
-                # Mark all refs inside this table's cells as children
-                if hasattr(item, 'data') and item.data:
-                    for dcell in item.data.table_cells:
-                        if hasattr(dcell, 'ref') and dcell.ref:
-                            ref = getattr(dcell.ref, 'cref', getattr(dcell.ref, 'self_ref', None))
-                            if ref:
-                                table_child_refs.add(ref)
+            # Mark all refs inside this table's cells as children
+            if isinstance(item, TableItem) and hasattr(item, 'data') and item.data:
+                for dcell in item.data.table_cells:
+                    if hasattr(dcell, 'ref') and dcell.ref:
+                        ref = getattr(dcell.ref, 'cref', getattr(dcell.ref, 'self_ref', None))
+                        if ref:
+                            table_child_refs.add(ref)
         
         # iterate_items() provides (item, level) in reading order
         for item, level in docling_doc.iterate_items():
@@ -2075,7 +2071,4 @@ class DoclingExtractor(BaseExtractor):
             return True # Empty page is "valid" in the sense of not garbled
             
         # Check for garble markers
-        if "/C0" in page_text or "/C1" in page_text:
-            return False
-            
-        return True
+        return not ("/C0" in page_text or "/C1" in page_text)

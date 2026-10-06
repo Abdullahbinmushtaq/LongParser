@@ -75,9 +75,9 @@ def strip_delimiters(s: str) -> str:
     elif s.startswith("$") and s.endswith("$"):
         s = s[1:-1].strip()
     # Remove \[ \] or \( \)
-    if s.startswith("\\[") and s.endswith("\\]"):
-        s = s[2:-2].strip()
-    elif s.startswith("\\(") and s.endswith("\\)"):
+    if (s.startswith("\\[") and s.endswith("\\]")) or (
+        s.startswith("\\(") and s.endswith("\\)")
+    ):
         s = s[2:-2].strip()
     return s
 
