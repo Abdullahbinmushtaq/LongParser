@@ -6,8 +6,6 @@ surya). This is critical to maintain LongParser's MIT license.
 """
 
 import sys
-import pytest
-
 
 # Packages that must NEVER appear in sys.modules after a default import
 _BLOCKED_MODULES = [
@@ -49,9 +47,7 @@ class TestLicenseSafety:
         """``from longparser.schemas import ...`` must not load GPL/AGPL."""
         _clear_blocked_modules()
 
-        from longparser.schemas import (  # noqa: F401
-            ProcessingConfig, Document, Block, Chunk
-        )
+        from longparser.schemas import Block, Chunk, Document, ProcessingConfig  # noqa: F401
 
         for mod_name in _BLOCKED_MODULES:
             assert mod_name not in sys.modules, (

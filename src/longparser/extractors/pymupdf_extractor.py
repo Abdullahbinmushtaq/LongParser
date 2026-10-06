@@ -38,15 +38,23 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import uuid
 from pathlib import Path
-from typing import Optional, List, Tuple
 
 from ..schemas import (
-    Document, Page, Block, Table, TableCell,
-    BlockType, ExtractorType, ProcessingConfig,
-    BoundingBox, Provenance, Confidence, BlockFlags,
-    DocumentMetadata, PageProfile, ExtractionMetadata,
+    Block,
+    BlockType,
+    BoundingBox,
+    Confidence,
+    Document,
+    DocumentMetadata,
+    ExtractionMetadata,
+    ExtractorType,
+    Page,
+    PageProfile,
+    ProcessingConfig,
+    Provenance,
+    Table,
+    TableCell,
 )
 from .base import BaseExtractor
 
@@ -125,8 +133,8 @@ class PyMuPDFExtractor(BaseExtractor):
         self,
         file_path: Path,
         config: ProcessingConfig,
-        page_numbers: Optional[List[int]] = None,
-    ) -> Tuple[Document, ExtractionMetadata]:
+        page_numbers: list[int] | None = None,
+    ) -> tuple[Document, ExtractionMetadata]:
         """Extract a PDF using PyMuPDF4LLM.
 
         Parameters
@@ -376,8 +384,8 @@ class PyMuPDFExtractor(BaseExtractor):
         order_index: int,
         page_no: int,
         file_path: Path,
-        heading_level: Optional[int] = None,
-        table: Optional[Table] = None,
+        heading_level: int | None = None,
+        table: Table | None = None,
     ) -> Block:
         """Create a Block with standard provenance."""
         return Block(

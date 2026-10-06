@@ -10,37 +10,34 @@ Uses:
 No hardcoded heuristics — relies entirely on Docling's native capabilities.
 """
 
-from pathlib import Path
-from typing import Optional, Tuple, List, Dict
-import os
-import time
-import logging
 import hashlib
-import uuid
+import logging
+import os
 import re
+import time
+import uuid
 from dataclasses import dataclass
+from pathlib import Path
+
+from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
     PdfPipelineOptions,
     TesseractCliOcrOptions,
 )
-from docling.datamodel.base_models import InputFormat
 from docling.document_converter import (
-    DocumentConverter,
-    PdfFormatOption,
-    WordFormatOption,
-    PowerpointFormatOption,
-    ExcelFormatOption,
     CsvFormatOption,
+    DocumentConverter,
+    ExcelFormatOption,
+    PdfFormatOption,
+    PowerpointFormatOption,
+    WordFormatOption,
 )
-
 from docling_core.transforms.chunker import HierarchicalChunker
 from docling_core.types.doc import (
+    ListItem,
+    PictureItem,
     SectionHeaderItem,
     TableItem,
-    PictureItem,
-    TextItem,
-    ListItem,
-    DocItemLabel,
 )
 
 # TitleItem is used by Docling for PPTX slide titles (not SectionHeaderItem)
@@ -50,10 +47,20 @@ except ImportError:
     TitleItem = None  # Fallback for older docling versions
 
 from ..schemas import (
-    Document, Page, Block, Table, TableCell,
-    BlockType, ExtractorType, ProcessingConfig,
-    BoundingBox, Provenance, Confidence, BlockFlags,
-    DocumentMetadata, PageProfile, ExtractionMetadata,
+    Block,
+    BlockType,
+    BoundingBox,
+    Confidence,
+    Document,
+    DocumentMetadata,
+    ExtractionMetadata,
+    ExtractorType,
+    Page,
+    PageProfile,
+    ProcessingConfig,
+    Provenance,
+    Table,
+    TableCell,
 )
 from .base import BaseExtractor
 
@@ -104,7 +111,7 @@ class _HeadingInfo:
     """Internal heading tracking."""
     text: str
     level: int
-    hierarchy_path: List[str]
+    hierarchy_path: list[str]
 
 
 @dataclass
@@ -122,7 +129,7 @@ class PptxParaInfo:
 class HierarchyChunk:
     """A chunk with hierarchy information."""
     text: str
-    heading_path: List[str]
+    heading_path: list[str]
     level: int
     page_number: int
     order_index: int
@@ -151,7 +158,7 @@ class DoclingExtractor(BaseExtractor):
     extractor_type = ExtractorType.DOCLING
     version = "3.0.0"
     
-    def __init__(self, tesseract_lang: List[str] = None, tessdata_path: str = None, force_full_page_ocr: bool = False):
+    def __init__(self, tesseract_lang: list[str] = None, tessdata_path: str = None, force_full_page_ocr: bool = False):
         """
         Initialize Docling extractor.
         
@@ -169,7 +176,7 @@ class DoclingExtractor(BaseExtractor):
         self._tessdata_dir = tessdata_path
         self._force_full_page_ocr = force_full_page_ocr
     
-    def _create_converter(self, config: ProcessingConfig, formula_enrichment: Optional[bool] = None) -> DocumentConverter:
+    def _create_converter(self, config: ProcessingConfig, formula_enrichment: bool | None = None) -> DocumentConverter:
         """Create a DocumentConverter with Tesseract CLI OCR."""
         # Configure pipeline
         pipeline_options = PdfPipelineOptions()
@@ -266,7 +273,7 @@ class DoclingExtractor(BaseExtractor):
                                 block.text = f"$${latex}$$"
                                 injected += 1
                             else:
-                                logger.debug(f"Skipping equation inject: ratio out of range")
+                                logger.debug("Skipping equation inject: ratio out of range")
                         
                         if len(formula_blocks) != len(latex_eqs):
                             logger.warning(
@@ -337,7 +344,8 @@ class DoclingExtractor(BaseExtractor):
                     processed, t0 = 0, time.monotonic()
                     # Per-equation timeout: cap each pix2tex call to prevent one slow eq from blocking
                     per_eq_timeout = float(os.getenv("LONGPARSER_FORMULA_PER_EQ_TIMEOUT", "30"))
-                    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+                    from concurrent.futures import ThreadPoolExecutor
+                    from concurrent.futures import TimeoutError as FuturesTimeout
                     executor = ThreadPoolExecutor(max_workers=1)
                     
                     for item, page_no in merged_items:
@@ -479,7 +487,9 @@ class DoclingExtractor(BaseExtractor):
                             continue
 
                         # Crop and OCR
-                        from PIL import Image as _PILImage
+                        from PIL import (
+                            Image as _PILImage,  # noqa: F401 — preserve lazy import behavior
+                        )
                         pad_x = (mbox["x1"] - mbox["x0"]) * 0.15
                         pad_y = (mbox["y1"] - mbox["y0"]) * 0.15
                         cx0 = max(0, mbox["x0"] - pad_x)
@@ -544,7 +554,8 @@ class DoclingExtractor(BaseExtractor):
                                          f"new equation injected as standalone")
                             # Inject as a minimal TextItem appended to the page's item list
                             try:
-                                from docling_core.types.doc import TextItem as _TextItem, DocItemLabel as _DIL
+                                from docling_core.types.doc import DocItemLabel as _DIL
+                                from docling_core.types.doc import TextItem as _TextItem
                                 new_item = _TextItem(
                                     label=_DIL.FORMULA,
                                     text=latex_text,
@@ -567,7 +578,7 @@ class DoclingExtractor(BaseExtractor):
             logger.error(f"Docling extraction failed: {e}")
             raise
 
-    def _cluster_font_sizes(self, heights: List[float], tolerance: float = 0.15) -> List[List[float]]:
+    def _cluster_font_sizes(self, heights: list[float], tolerance: float = 0.15) -> list[list[float]]:
         """
         Cluster heading bbox heights into distinct font-size groups.
         
@@ -601,7 +612,7 @@ class DoclingExtractor(BaseExtractor):
         return clusters
 
     @staticmethod
-    def _extract_marker(text: str) -> Optional[str]:
+    def _extract_marker(text: str) -> str | None:
         """
         Extract the leading marker/prefix from a heading text.
         
@@ -646,9 +657,9 @@ class DoclingExtractor(BaseExtractor):
 
     def _sub_cluster_by_markers(
         self,
-        texts_in_cluster: List[str],
+        texts_in_cluster: list[str],
         base_level: int,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """
         Sub-differentiate headings within the same font-size cluster
         using autonomous marker-pattern analysis.
@@ -733,7 +744,7 @@ class DoclingExtractor(BaseExtractor):
         
         return result
 
-    def _build_hierarchy_map(self, docling_doc) -> Tuple[Dict[str, List[str]], Dict[str, int]]:
+    def _build_hierarchy_map(self, docling_doc) -> tuple[dict[str, list[str]], dict[str, int]]:
         """
         Build two mappings using Docling's native APIs:
         1. item self_ref -> heading path (from HierarchicalChunker)
@@ -891,7 +902,7 @@ class DoclingExtractor(BaseExtractor):
         
         return ref_to_path, heading_to_level
 
-    def _get_page_dimensions(self, docling_doc) -> Dict[int, Tuple[float, float]]:
+    def _get_page_dimensions(self, docling_doc) -> dict[int, tuple[float, float]]:
         """
         Extract actual page dimensions from Docling document.
         
@@ -930,7 +941,7 @@ class DoclingExtractor(BaseExtractor):
             )
         return BoundingBox(x0=0, y0=0, x1=0, y1=0)
 
-    def _get_item_provenance(self, item) -> Tuple[int, BoundingBox]:
+    def _get_item_provenance(self, item) -> tuple[int, BoundingBox]:
         """
         Extract page number (0-based) and bbox from a Docling item.
         
@@ -949,7 +960,7 @@ class DoclingExtractor(BaseExtractor):
         
         return page_num, bbox
 
-    def _determine_block_type(self, item, level: int, heading_to_level: Dict[str, int] = None) -> Tuple[BlockType, Optional[int]]:
+    def _determine_block_type(self, item, level: int, heading_to_level: dict[str, int] = None) -> tuple[BlockType, int | None]:
         """
         Determine block type and heading level from a Docling item
         using isinstance checks and item.label.
@@ -1041,7 +1052,7 @@ class DoclingExtractor(BaseExtractor):
             return float(item.confidence)
         return 1.0
 
-    def _build_pptx_text_map(self, file_path: Path) -> Dict[int, Dict[str, PptxParaInfo]]:
+    def _build_pptx_text_map(self, file_path: Path) -> dict[int, dict[str, PptxParaInfo]]:
         """
         Use python-pptx to build a per-slide map of text -> paragraph info.
         
@@ -1050,14 +1061,18 @@ class DoclingExtractor(BaseExtractor):
         """
         try:
             from pptx import Presentation
-            from pptx.util import Emu
-            from pptx.enum.shapes import PP_PLACEHOLDER_TYPE as PP_PLACEHOLDER
-            from pptx.enum.shapes import MSO_SHAPE_TYPE
+            from pptx.enum.shapes import (
+                MSO_SHAPE_TYPE,  # noqa: F401 — preserve optional dependency check
+            )
+            from pptx.enum.shapes import (
+                PP_PLACEHOLDER_TYPE as PP_PLACEHOLDER,  # noqa: F401 — preserve optional dependency check
+            )
+            from pptx.util import Emu  # noqa: F401 — preserve optional dependency check
         except ImportError:
             logger.warning("python-pptx not installed, cannot build PPTX indent map")
             return {}
         
-        pptx_map: Dict[int, Dict[str, PptxParaInfo]] = {}
+        pptx_map: dict[int, dict[str, PptxParaInfo]] = {}
         
         try:
             prs = Presentation(str(file_path))
@@ -1066,7 +1081,7 @@ class DoclingExtractor(BaseExtractor):
             return {}
         
         for slide_idx, slide in enumerate(prs.slides):
-            slide_map: Dict[str, PptxParaInfo] = {}
+            slide_map: dict[str, PptxParaInfo] = {}
             found_title = False
             
             # Check if slide 0 has an actual SUBTITLE placeholder
@@ -1098,7 +1113,7 @@ class DoclingExtractor(BaseExtractor):
         # Text appearing on >50% of slides is likely a repeated footer/header element
         num_slides = len(pptx_map)
         if num_slides >= 3:  # Only apply for presentations with enough slides
-            text_slide_count: Dict[str, int] = {}
+            text_slide_count: dict[str, int] = {}
             for slide_map in pptx_map.values():
                 for text, info in slide_map.items():
                     if not info.is_title and not info.is_subtitle and not info.is_footer:
@@ -1121,7 +1136,7 @@ class DoclingExtractor(BaseExtractor):
         logger.info(f"Built PPTX text map: {len(pptx_map)} slides, {total_entries} text entries")
         return pptx_map
     
-    def _extract_pptx_shape_info(self, shape, slide_map: Dict[str, PptxParaInfo], 
+    def _extract_pptx_shape_info(self, shape, slide_map: dict[str, PptxParaInfo],
                                 slide_idx: int = 0, found_title: bool = False,
                                 has_subtitle_placeholder: bool = False) -> bool:
         """Extract paragraph info from a shape, handling groups recursively.
@@ -1129,8 +1144,8 @@ class DoclingExtractor(BaseExtractor):
         Returns whether a title shape has been found (for subtitle detection).
         """
         try:
-            from pptx.enum.shapes import PP_PLACEHOLDER_TYPE as PP_PLACEHOLDER
             from pptx.enum.shapes import MSO_SHAPE_TYPE
+            from pptx.enum.shapes import PP_PLACEHOLDER_TYPE as PP_PLACEHOLDER
         except ImportError:
             return found_title
         
@@ -1246,8 +1261,8 @@ class DoclingExtractor(BaseExtractor):
         self,
         file_path: Path,
         config: ProcessingConfig,
-        page_numbers: Optional[List[int]] = None,
-    ) -> Tuple[Document, ExtractionMetadata]:
+        page_numbers: list[int] | None = None,
+    ) -> tuple[Document, ExtractionMetadata]:
         """
         Extract document using Docling.
         
@@ -1340,7 +1355,7 @@ class DoclingExtractor(BaseExtractor):
         
         return doc, meta
     
-    def _build_table_from_item(self, item, docling_doc=None) -> Optional[Table]:
+    def _build_table_from_item(self, item, docling_doc=None) -> Table | None:
         """
         Convert Docling TableItem.data into our Table schema.
         
@@ -1408,14 +1423,14 @@ class DoclingExtractor(BaseExtractor):
     def _convert_to_pages(
         self,
         docling_doc,
-        hierarchy_map: Dict[str, List[str]],
-        heading_to_level: Dict[str, int],
-        page_dims: Dict[int, Tuple[float, float]],
+        hierarchy_map: dict[str, list[str]],
+        heading_to_level: dict[str, int],
+        page_dims: dict[int, tuple[float, float]],
         file_path: Path,
         file_hash: str,
         exclude_headers_footers: bool = True,
-        pptx_text_map: Optional[Dict[int, Dict[str, 'PptxParaInfo']]] = None,
-    ) -> List[Page]:
+        pptx_text_map: dict[int, dict[str, 'PptxParaInfo']] | None = None,
+    ) -> list[Page]:
         """
         Convert Docling document to our Page format using iterate_items().
         
@@ -1425,7 +1440,7 @@ class DoclingExtractor(BaseExtractor):
         Tracks TableItem children to prevent duplicate blocks.
         When pptx_text_map is provided, uses it to set indent_level on blocks.
         """
-        pages_dict: Dict[int, Page] = {}
+        pages_dict: dict[int, Page] = {}
         block_idx = 0
         
         # Gap #1: Collect all self_refs that belong to table children
@@ -1578,7 +1593,7 @@ class DoclingExtractor(BaseExtractor):
         self,
         file_path: Path,
         config: ProcessingConfig,
-    ) -> List[HierarchyChunk]:
+    ) -> list[HierarchyChunk]:
         """
         Get document hierarchy using HierarchicalChunker.
         
@@ -1649,7 +1664,7 @@ class DoclingExtractor(BaseExtractor):
         """Sanitize string for filename."""
         return "".join(c for c in name if c.isalnum() or c in ('-', '_')).strip()
 
-    def save_images(self, output_dir: Path) -> List[Path]:
+    def save_images(self, output_dir: Path) -> list[Path]:
         """
         Save extracted images (pages, figures, tables).
         
@@ -1718,7 +1733,7 @@ class DoclingExtractor(BaseExtractor):
     # LaTeX-OCR helpers (PDF smart mode)
     # ------------------------------------------------------------------
 
-    def _find_equation_items(self, doc) -> List[tuple]:
+    def _find_equation_items(self, doc) -> list[tuple]:
         """Find FORMULA-labeled items. Returns [(item, page_no), ...]."""
         equation_items = []
         for item, _ in doc.iterate_items():
@@ -1734,7 +1749,7 @@ class DoclingExtractor(BaseExtractor):
                 equation_items.append((item, page_no))
         return equation_items
 
-    def _merge_adjacent_formulas(self, items: List[tuple], doc) -> tuple:
+    def _merge_adjacent_formulas(self, items: list[tuple], doc) -> tuple:
         """Merge vertically adjacent FORMULA bboxes in pixel space.
 
         Returns:
@@ -1742,7 +1757,7 @@ class DoclingExtractor(BaseExtractor):
             union_bboxes: dict of id(item) -> (x0, y0, x1, y1) in pixels
             blank_ids: set of id(item) for leftover fragments to blank
         """
-        union_bboxes: Dict[int, tuple] = {}
+        union_bboxes: dict[int, tuple] = {}
         blank_ids: set = set()
 
         if len(items) < 2:
@@ -1824,7 +1839,7 @@ class DoclingExtractor(BaseExtractor):
         return merged, union_bboxes, blank_ids
 
     def _crop_equation_bbox(self, doc, item, page_no: int,
-                            union_bboxes: Dict[int, tuple] = None):
+                            union_bboxes: dict[int, tuple] = None):
         """Crop equation image from page. Returns PIL Image or None."""
         page = doc.pages.get(page_no)
         if page is None or not hasattr(page, 'image') or page.image is None:
@@ -1879,7 +1894,7 @@ class DoclingExtractor(BaseExtractor):
     # DOCX/PPTX equation extraction
     # ------------------------------------------------------------------
 
-    def _extract_docx_equations(self, file_path: Path) -> List[str]:
+    def _extract_docx_equations(self, file_path: Path) -> list[str]:
         """Extract OMML equations from DOCX as LaTeX strings."""
         try:
             from docxlatex import Document as DocxLatexDoc
@@ -1893,7 +1908,7 @@ class DoclingExtractor(BaseExtractor):
             logger.warning(f"DOCX equation extraction failed: {e}")
             return []
 
-    def _extract_pptx_equations(self, file_path: Path) -> List[str]:
+    def _extract_pptx_equations(self, file_path: Path) -> list[str]:
         """Scan PPTX slide XML for <m:oMath> nodes."""
         import zipfile
         try:
@@ -1998,7 +2013,7 @@ class DoclingExtractor(BaseExtractor):
             
         return normalized
 
-    def _detect_math_heavy_pages(self, doc, threshold: int = 3) -> List[int]:
+    def _detect_math_heavy_pages(self, doc, threshold: int = 3) -> list[int]:
         """
         Identify pages that contain significant math content.
         Returns a list of 1-based page numbers.

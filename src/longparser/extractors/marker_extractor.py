@@ -19,11 +19,20 @@ from __future__ import annotations
 import hashlib
 import logging
 from pathlib import Path
-from typing import Optional, List, Tuple
 
 from ..schemas import (
-    Document, Page, Block, BlockType, ExtractorType, ProcessingConfig,
-    BoundingBox, Provenance, Confidence, DocumentMetadata, PageProfile, ExtractionMetadata
+    Block,
+    BlockType,
+    BoundingBox,
+    Confidence,
+    Document,
+    DocumentMetadata,
+    ExtractionMetadata,
+    ExtractorType,
+    Page,
+    PageProfile,
+    ProcessingConfig,
+    Provenance,
 )
 from .base import BaseExtractor
 
@@ -81,13 +90,13 @@ class MarkerExtractor(BaseExtractor):
         self,
         file_path: Path,
         config: ProcessingConfig,
-        page_numbers: Optional[List[int]] = None,
-    ) -> Tuple[Document, ExtractionMetadata]:
+        page_numbers: list[int] | None = None,
+    ) -> tuple[Document, ExtractionMetadata]:
         """Extract a PDF using Marker."""
+        import fitz  # PyMuPDF is a marker dependency anyway
         from marker.convert import convert_single_pdf
         from marker.models import load_all_models
         from marker.settings import settings
-        import fitz  # PyMuPDF is a marker dependency anyway
 
         file_path = Path(file_path)
         logger.info("Extracting with Marker: %s", file_path.name)

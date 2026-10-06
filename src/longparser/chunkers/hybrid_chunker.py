@@ -12,10 +12,9 @@ Combines 6 strategies:
 
 from __future__ import annotations
 
-import re
 import logging
+import re
 import unicodedata
-from typing import Optional
 
 from ..schemas import Block, BlockType, Chunk, ChunkingConfig
 
@@ -114,7 +113,7 @@ def _eq_pattern_hits(text: str) -> int:
     return sum(1 for pat in _EQ_PATTERNS if pat.search(text))
 
 
-def _is_equation_candidate(block: Block, prev_block: Optional[Block] = None) -> bool:
+def _is_equation_candidate(block: Block, prev_block: Block | None = None) -> bool:
     """
     Determine if a paragraph block should be re-tagged as an equation.
 
@@ -562,7 +561,7 @@ class HybridChunker:
         chunks = chunker.chunk(blocks)
     """
 
-    def __init__(self, config: Optional[ChunkingConfig] = None):
+    def __init__(self, config: ChunkingConfig | None = None):
         self.config = config or ChunkingConfig()
 
     def chunk(self, blocks: list[Block]) -> list[Chunk]:

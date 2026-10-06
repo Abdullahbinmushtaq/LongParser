@@ -8,17 +8,14 @@ import pytest
 # (docling, motor, etc.) that live behind the top-level __init__ lazy imports.
 from longparser.schemas import (
     Block,
-    BlockFlags,
     BlockType,
     BoundingBox,
-    Chunk,
     ChunkingConfig,
     Confidence,
+    ExtractorType,
     ProcessingConfig,
     Provenance,
-    ExtractorType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Schema helpers

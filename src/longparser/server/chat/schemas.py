@@ -6,10 +6,8 @@ import os
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -87,10 +85,10 @@ class ChatRequest(BaseModel):
     session_id: str
     job_id: str
     question: str
-    llm_provider: Optional[str] = None   # override env default
-    llm_model: Optional[str] = None      # override env default
+    llm_provider: str | None = None   # override env default
+    llm_model: str | None = None      # override env default
     top_k: int = 5
-    idempotency_key: Optional[str] = None
+    idempotency_key: str | None = None
     require_approval: bool = False       # opt-in HITL review
 
 
@@ -99,7 +97,7 @@ class HITLResumeRequest(BaseModel):
     session_id: str
     thread_id: str                        # LangGraph thread ID
     action: str                           # "approve" | "edit" | "reject"
-    edited_answer: Optional[str] = None   # only for action="edit"
+    edited_answer: str | None = None   # only for action="edit"
 
 
 class SourceRef(BaseModel):
@@ -117,7 +115,7 @@ class ChatResponse(BaseModel):
     answer: str
     sources: list[SourceRef] = Field(default_factory=list)
     status: str = "complete"              # "complete" | "pending_review"
-    thread_id: Optional[str] = None       # set when status="pending_review"
+    thread_id: str | None = None       # set when status="pending_review"
 
 
 class LLMAnswer(BaseModel):
@@ -137,7 +135,7 @@ class Turn(BaseModel):
     answer: str
     sources: list[SourceRef] = Field(default_factory=list)
     archived: bool = False
-    idempotency_key: Optional[str] = None
+    idempotency_key: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -160,5 +158,5 @@ class SessionInfo(BaseModel):
     rolling_summary: str = ""
     long_term_facts: list[Fact] = Field(default_factory=list)
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    deleted_at: Optional[datetime] = None
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None
