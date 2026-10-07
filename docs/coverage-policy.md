@@ -35,6 +35,20 @@ Percentages below are evidence, not additional per-module pass/fail gates.
 | Utilities | 126 | 27 | 21.43% | No | Language detection, OCR routing and RTL edge cases. |
 | **Total** | **4,873** | **924** | **18.96%** | **No** | Planned tests and remaining service/model paths. |
 
+## Milestone 3 verified measurement
+
+The new controlled tests increase full-source statement coverage to **28.71%** (1,400 of 4,876 statements across the same 40 files). The approved equation page-reference fix adds three measured statements to the Milestone 2 denominator of 4,873; the coverage scope and provisional 17% gate are unchanged.
+
+| Module | Covered / measured statements | Coverage |
+|---|---:|---:|
+| Hybrid chunker | 428 / 482 | 88.80% |
+| Quality scorer | 56 / 58 | 96.55% |
+| Semantic boundaries | 34 / 34 | 100.00% |
+
+This measurement comes from **120 passing tests**, including both corrected provenance regression cases, with six opt-in real-model tests deselected. The full pytest suite and coverage floor pass. The separate six-test real-model run also passes; its results are not included in these coverage totals.
+
+See [chunking tests](chunking-tests.md) for commands and the fixed labelled evaluation, and [equation page provenance](issues/equation-page-provenance.md) for the authorized repair and release disposition. Final coverage gate selection remains scheduled after Milestones 3–5. The informational mypy run reports 93 errors in 18 files; the carried-ID guard also resolves the prior optional-ID typing error in the chunker, with no new typing findings from the repair.
+
 ## Provisional and final minimum
 
 `fail_under = 17` is an intermediate floor derived from the measured 18.96% baseline. It leaves 1.96 percentage points of headroom for small interpreter/environment differences while providing a stronger check than the previous 5% gate. Local validation covers Python 3.13; the unchanged CI matrix runs Python 3.10–3.13.

@@ -7,6 +7,11 @@ This project follows [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased] — planned 0.1.6
 
+### Added
+
+- Controlled regression tests for hybrid chunking, provenance, quality scoring and semantic boundary edge cases, using offline external-resource stubs.
+- Opt-in CPU embedding tests with a pinned local MiniLM snapshot and fixed labelled examples; regular CI does not require model assets.
+
 ### Changed
 
 - CI now enforces all configured Ruff rules, with reviewed import and Python 3.10+ annotation cleanup.
@@ -19,6 +24,7 @@ This project follows [Semantic Versioning](https://semver.org/) and
 
 ### Fixed
 
+- Equation context carried into another chunk now retains its source page, and outgoing chunks report only the pages of their remaining source blocks.
 - Optional-backend installation errors now explicitly retain their original exception causes.
 - Vector insertion explicitly uses `zip(strict=False)` to preserve existing truncation behavior.
 
