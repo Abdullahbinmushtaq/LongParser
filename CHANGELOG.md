@@ -9,12 +9,14 @@ This project follows [Semantic Versioning](https://semver.org/) and
 
 ### Added
 
+- Extractor classification, heading/hierarchy, page-validation, optional-backend guard and LaTeX OCR setup tests, verified without model dependencies on Python 3.10–3.13.
 - Offline pipeline, PII redaction, reference, summary and language/RTL/OCR regression tests, with a separate minimal-dependency verification environment and fresh-process default-routing isolation check.
 - Controlled regression tests for hybrid chunking, provenance, quality scoring and semantic boundary edge cases, using offline external-resource stubs.
 - Opt-in CPU embedding tests with a pinned local MiniLM snapshot and fixed labelled examples; regular CI does not require model assets.
 
 ### Changed
 
+- Raised the whole-production coverage minimum from the provisional 17% to 45%, based on 47.53% measured coverage after the planned test milestones; full CI matrix validation remains pending.
 - CI now enforces all configured Ruff rules, with reviewed import and Python 3.10+ annotation cleanup.
 - FastAPI dependency defaults retain their existing behavior through a targeted `B008` exception for the server application.
 - The license check detects bare and dotted Marker imports in core files while retaining the two isolated extractor exceptions.

@@ -67,19 +67,38 @@ This measurement comes from **225 passing default-suite tests**, including all f
 
 [Pipeline test documentation](pipeline-tests.md) records the scope, minimal-environment evidence and reproduction commands. Coverage reflects statement execution, including controlled external resources; it does not prove real PDF/OCR quality, general PII completeness or live provider availability.
 
-## Provisional and final minimum
+## Milestone 5 and combined coverage
 
-`fail_under = 17` is an intermediate floor derived from the measured 18.96% baseline. It leaves 1.96 percentage points of headroom for small interpreter/environment differences while providing a stronger check than the previous 5% gate. Local validation covers Python 3.13; the unchanged CI matrix runs Python 3.10–3.13.
+Milestone 5 adds 62 focused extractor/helper/guard cases without production changes. The full default suite passes **287 tests**, with six opt-in real-model tests deselected; those six pass separately. The source scope stays at 40 files and 4,885 statements, with **2,322 covered (47.53%)**. No additional coverage omissions or diagnostic overrides are used.
 
-Before submitting the combined implementation PR:
+| Module/group | Covered / measured statements | Coverage |
+|---|---:|---:|
+| Core schemas/package initializers | 222 / 225 | 98.67% |
+| Hybrid chunker | 428 / 482 | 88.80% |
+| Quality scorer/semantic boundaries | 90 / 92 | 97.83% |
+| Extractors/LaTeX helpers | 539 / 1,626 | 33.15% |
+| Pipeline/redaction/references/summaries | 416 / 484 | 85.95% |
+| Server/chat | 504 / 1,760 | 28.64% |
+| Utilities | 123 / 126 | 97.62% |
+| Integration adapters | 0 / 90 | 0.00% |
+| **Whole source** | **2,322 / 4,885** | **47.53%** |
 
-1. Complete the planned tests in Milestones 3–5 on this same branch.
-2. Re-measure coverage over the same full production scope and update module/group evidence.
-3. Raise the committed minimum from these final results, using a documented small margin, and validate it against the available CI matrix results.
-4. Run the complete suite with the final committed gate and no diagnostic overrides.
-5. If the completed work cannot support a meaningful final gate, resolve DEC-06 from the implementation plan before submission. Do not disable coverage or restore broad omissions to produce a passing result.
+The selected Docling helper slice has 199 of 202 statements covered (98.51%); the entire Docling extractor is 25.00%. These are different denominators. [Extractor test documentation](extractor-tests.md) records the selected functions, case mapping, return-contract discrepancy and remaining conversion/model paths.
 
-The provisional 17% floor is not the completed release gate. A future source-scope change must be explained separately from added executed statements.
+## Enforced minimum after Milestone 5
+
+`fail_under = 45` replaces the historical 17% provisional floor. The completed local default-suite measurement is 47.53%; rounding down after allowing roughly two percentage points leaves **2.53 points of headroom** (about 124 statements). This is an evidence-based stronger gate, not a claim of 90% whole-project coverage.
+
+The full suite passes against this committed setting on Python 3.13.15. All 62 focused extractor cases also pass in minimal environments on Python 3.10.21, 3.11.16, 3.12.14 and 3.13.15. That focused matrix does not replace the full development/server CI matrix.
+
+Before submitting/releasing the combined implementation:
+
+1. Validate the 45% floor against the full Python 3.10–3.13 CI matrix and review any environment-dependent coverage changes.
+2. Keep the same whole-production denominator and active regression assertions. Do not restore broad omissions or bypass coverage to get a passing result.
+3. Re-measure after any further source changes; explain denominator changes separately from added execution. Adjust a gate only with documented evidence and a small justified margin.
+4. Complete the remaining combined review, real installation smoke, package build and release checks in the implementation/release plan.
+
+Remote CI has not run because the implementation branch has not been pushed. The 45% gate is locally verified; full-matrix and release acceptance are pending. Historical milestone measurements above retain their original denominator and gate values for comparison.
 
 ## Informational typing check
 

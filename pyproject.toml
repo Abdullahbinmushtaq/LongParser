@@ -243,10 +243,10 @@ source = ["src/longparser"]
 
 [tool.coverage.report]
 show_missing = true
-# Provisional: Milestone 2 baseline is 18.96%, leaving about two percentage points.
-# Raise after Milestones 3–5 before submitting the combined implementation PR.
-# Measurement scope and final-gate policy: docs/coverage-policy.md.
-fail_under = 17
+# Milestones 3–5 reach 47.53% across all production modules on Python 3.13.
+# 45% leaves 2.53 points of headroom; full CI matrix validation is still required.
+# Measurement scope and gate rationale: docs/coverage-policy.md.
+fail_under = 45
 
 # CPU-only PyTorch index — saves ~2.3 GB vs CUDA build
 [[tool.uv.index]]
