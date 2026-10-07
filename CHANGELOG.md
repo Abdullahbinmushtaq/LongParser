@@ -13,6 +13,9 @@ This project follows [Semantic Versioning](https://semver.org/) and
 - FastAPI dependency defaults retain their existing behavior through a targeted `B008` exception for the server application.
 - The license check detects bare and dotted Marker imports in core files while retaining the two isolated extractor exceptions.
 - Added regression tests that execute the actual license-check workflow script and verify lightweight imports in a fresh Python process.
+- Coverage now includes every production module, with a measured 18.96% baseline and a provisional 17% minimum; the final gate will be raised after the planned test milestones.
+- Added non-blocking informational mypy checks to CI and documented the coverage measurement policy.
+- Removed the unused, empty server routers package and its stale documentation reference; API routes remain in `app.py`.
 
 ### Fixed
 

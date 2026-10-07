@@ -39,6 +39,10 @@ jobs:
       - name: Install package and test deps
         run: pip install -e ".[dev,server]"
 
+      - name: Informational type checking (non-blocking)
+        continue-on-error: true
+        run: mypy src/longparser/
+
       - name: Run tests
         run: pytest tests/ -v --tb=short --cov=longparser --cov-report=term-missing
 
