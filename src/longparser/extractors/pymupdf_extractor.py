@@ -206,6 +206,19 @@ class PyMuPDFExtractor(BaseExtractor):
 
         return document, meta
 
+    def extract_page(
+        self,
+        file_path: Path,
+        page_number: int,
+        config: ProcessingConfig,
+    ) -> Page:
+        """Return a 0-indexed page with its original dimensions and provenance."""
+        document, _ = self.extract(file_path, config)
+        for page in document.pages:
+            if page.page_number == page_number + 1:
+                return page
+        raise ValueError(f"Page {page_number} not found in {file_path}")
+
     def _markdown_to_document(
         self,
         md_text: str,

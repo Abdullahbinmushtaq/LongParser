@@ -205,17 +205,20 @@ class PipelineOrchestrator:
         logger.info(f"Processing: {file_path.name}")
 
         # Auto-mode: decide backend per document
+        extractor = self.extractor
         if self._backend_name == "auto" and self._should_use_pymupdf(file_path):
             from ..extractors.pymupdf_extractor import PyMuPDFExtractor
-            extractor = PyMuPDFExtractor()
-            logger.info("Auto mode selected: PyMuPDF4LLM (native PDF detected)")
-        else:
-            extractor = self.extractor
+            try:
+                extractor = PyMuPDFExtractor()
+            except ImportError:
+                logger.debug("Auto mode: PyMuPDF dependency unavailable, using Docling")
+            else:
+                logger.info("Auto mode selected: PyMuPDF4LLM (native PDF detected)")
 
-            # Resolve languages for Docling backend
-            if isinstance(extractor, DoclingExtractor):
-                resolved_langs = self._resolve_languages(file_path, config)
-                extractor._languages = resolved_langs
+        # Resolve languages for Docling, including the missing-extra fallback.
+        if isinstance(extractor, DoclingExtractor):
+            resolved_langs = self._resolve_languages(file_path, config)
+            extractor._languages = resolved_langs
 
         # Extract document
         document, meta = extractor.extract(file_path, config)
