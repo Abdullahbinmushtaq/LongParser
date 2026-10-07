@@ -761,6 +761,7 @@ class HybridChunker:
                 model_name=self.config.semantic_model,
             ))
 
+        source_pages = {b.block_id: b.provenance.page_number for b in blocks}
         current_texts: list[str] = []
         current_ids: list[str] = []
         current_pages: set[int] = set()
@@ -792,6 +793,7 @@ class HybridChunker:
                 if block.type == BlockType.EQUATION and len(current_texts) > 0:
                     carry_text = current_texts.pop()
                     carry_id = current_ids.pop()
+                    current_pages = {source_pages[bid] for bid in current_ids}
                     carry_tokens = _count_tokens(carry_text)
                     current_tokens -= carry_tokens
                 
@@ -814,12 +816,11 @@ class HybridChunker:
                 current_tokens = 0
                 has_equation = False
                 
-                if carry_text:
+                if carry_text and carry_id is not None:
                     current_texts.append(carry_text)
                     current_ids.append(carry_id)
                     current_tokens += carry_tokens
-                    # Note: We assume the carried block is close enough to the next block 
-                    # that simply adding the next block's page will suffice for provenance.
+                    current_pages.add(source_pages[carry_id])
 
             current_texts.append(text)
             current_ids.append(block.block_id)
