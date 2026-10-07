@@ -11,15 +11,17 @@ This project follows [Semantic Versioning](https://semver.org/) and
 
 - Whole-project regression tests for HTTP API/review/chat, database, workers, queues, embedding/vector adapters, integrations and conversion/OCR orchestration with controlled external SDKs.
 
-- Extractor classification, heading/hierarchy, page-validation, optional-backend guard and LaTeX OCR setup tests, verified without model dependencies on Python 3.10–3.13.
+- Extractor classification, heading/hierarchy, page-validation, optional-backend guard and LaTeX OCR setup tests, previously verified without model dependencies on Python 3.10–3.13 before the minimum supported version was raised.
 - Offline pipeline, PII redaction, reference, summary and language/RTL/OCR regression tests, with a separate minimal-dependency verification environment and fresh-process default-routing isolation check.
 - Controlled regression tests for hybrid chunking, provenance, quality scoring and semantic boundary edge cases, using offline external-resource stubs.
 - Opt-in CPU embedding tests with a pinned local MiniLM snapshot and fixed labelled examples; regular CI does not require model assets.
 
 ### Changed
 
+- Require Python 3.11 or newer and test supported Python 3.11–3.13 in CI. Python 3.10 support is discontinued following its October 1, 2026 end of life; Python 3.10 users must upgrade to install this upcoming release. This is a compatibility-policy change, not a fix for the unresolved Python 3.10 CI failure.
+
 - Raised the whole-production coverage minimum to 95% after the expanded suite reaches 95.97%; the earlier milestone checkpoint was 47.53% with a 45% minimum. Full CI matrix validation remains pending.
-- CI now enforces all configured Ruff rules, with reviewed import and Python 3.10+ annotation cleanup.
+- CI now enforces all configured Ruff rules, with reviewed import and annotation cleanup.
 - FastAPI dependency defaults retain their existing behavior through a targeted `B008` exception for the server application.
 - The license check detects bare and dotted Marker imports in core files while retaining the two isolated extractor exceptions.
 - Added regression tests that execute the actual license-check workflow script and verify lightweight imports in a fresh Python process.

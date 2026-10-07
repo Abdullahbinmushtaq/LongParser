@@ -7,7 +7,7 @@ name = "longparser"
 version = "0.1.5"
 description = "Privacy-first document intelligence engine — converts PDFs, DOCX, PPTX, XLSX, and CSV into AI-ready Markdown + structured JSON for RAG pipelines."
 readme = {file = "README.md", content-type = "text/markdown"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [
     {name = "ENDEVSOLS Team", email = "technology@endevsols.com"},
@@ -23,7 +23,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -211,7 +210,7 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
@@ -219,6 +218,9 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/longparser/server/app.py" = ["B008"]  # FastAPI File()/Depends() declarations
+"src/longparser/schemas.py" = ["UP042"]  # Preserve public str/Enum formatting behavior.
+"src/longparser/server/schemas.py" = ["UP042"]
+"src/longparser/server/chat/schemas.py" = ["UP042"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["longparser"]
@@ -231,7 +233,7 @@ markers = ["real_embeddings: opt-in CPU tests using a pinned local SentenceTrans
 addopts = "-v --tb=short"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = false
 ignore_missing_imports = true
 warn_unused_ignores = true

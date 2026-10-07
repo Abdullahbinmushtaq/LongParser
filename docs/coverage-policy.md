@@ -91,7 +91,7 @@ The selected Docling helper slice has 199 of 202 statements covered (98.51%); th
 
 The full suite passes against this committed setting on Python 3.13.15. All 62 focused extractor cases also pass in minimal environments on Python 3.10.21, 3.11.16, 3.12.14 and 3.13.15. That focused matrix does not replace the full development/server CI matrix.
 
-Before submitting/releasing the combined implementation:
+The following checks were recorded under the previous support policy and 45% gate. The current policy and 95% gate are documented below:
 
 1. Validate the 45% floor against the full Python 3.10–3.13 CI matrix and review any environment-dependent coverage changes.
 2. Keep the same whole-production denominator and active regression assertions. Do not restore broad omissions or bypass coverage to get a passing result.
@@ -123,3 +123,7 @@ The mypy command exits nonzero while its baseline findings remain; this is expec
 The subsequently requested whole-project test expansion reaches **95.97%** (4,691 / 4,888 statements across the same 40 modules) on Python 3.13.15. The enforced minimum is now **95%**. No new omissions or exclusions were added. The approved wide-table correction keeps its statement count; the subsequent approved Docling repairs add three statements.
 
 This checkpoint has **448 passing tests, zero failures and six real-model tests deselected**. The six real-model tests pass separately. All four previously failing defect regressions pass after the user-approved fixes. The [full-project report](full-project-testing.md) records module-level coverage, newly discovered defects, approval status, SDK boundaries and remaining validation. The earlier milestone measurements and 45% policy above are historical evidence, not the current gate.
+
+## Current Python support policy
+
+The upcoming release requires Python 3.11 or newer. Its supported CI matrix is Python 3.11–3.13; validate the current 95% coverage minimum across those jobs. Earlier Python 3.10 measurements above describe the previous support policy and remain historical evidence.

@@ -7,7 +7,7 @@ materialized path hierarchy indexes.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
@@ -142,7 +142,7 @@ class Database:
             "total_blocks": 0,
             "total_chunks": 0,
             "progress": {"pages_done": 0, "blocks_saved": 0, "chunks_saved": 0, "embeddings_done": 0},
-            "created_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(UTC),
             "finalized_at": None,
             "error": None,
         }
@@ -422,7 +422,7 @@ class Database:
             "job_id": job_id,
             "index_version": index_version,
             "status": "embedding",
-            "created_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(UTC),
             **config,
         }
         await self.index_versions.update_one(
@@ -464,8 +464,8 @@ class Database:
             "rolling_summary": "",
             "long_term_facts": [],
             "version": 1,
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(UTC),
+            "updated_at": datetime.now(UTC),
             "deleted_at": None,
         }
         await self.chat_sessions.insert_one(doc)
@@ -490,7 +490,7 @@ class Database:
         """Soft-delete a session (sets deleted_at, excluded from queries)."""
         result = await self.chat_sessions.update_one(
             {"tenant_id": tenant_id, "session_id": session_id, "deleted_at": None},
-            {"$set": {"deleted_at": datetime.now(timezone.utc)}},
+            {"$set": {"deleted_at": datetime.now(UTC)}},
         )
         return result.modified_count > 0
 
@@ -507,7 +507,7 @@ class Database:
             {
                 "$set": {
                     "rolling_summary": summary,
-                    "updated_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(UTC),
                 },
                 "$inc": {"version": 1},
             },
@@ -527,7 +527,7 @@ class Database:
             {
                 "$set": {
                     "long_term_facts": facts,
-                    "updated_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(UTC),
                 },
                 "$inc": {"version": 1},
             },
@@ -552,7 +552,7 @@ class Database:
             {"tenant_id": tenant_id, "session_id": session_id},
             {
                 "$inc": {"turn_count": 1},
-                "$set": {"updated_at": datetime.now(timezone.utc)},
+                "$set": {"updated_at": datetime.now(UTC)},
             },
         )
 
@@ -636,7 +636,7 @@ class Database:
         self, ttl_days: int = 30
     ) -> list[dict]:
         """Find soft-deleted sessions past the retention period."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=ttl_days)
+        cutoff = datetime.now(UTC) - timedelta(days=ttl_days)
         cursor = self.chat_sessions.find(
             {"deleted_at": {"$lte": cutoff}},
             {"session_id": 1, "tenant_id": 1, "_id": 0},

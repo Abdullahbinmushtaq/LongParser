@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib
 import json
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import ModuleType, SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
@@ -135,7 +135,7 @@ async def test_summary_worker_generates_section_chunks_with_real_enricher(memory
 
 async def seed_session_turns(database):
     await database.create_chat_session("tenant", "session", "job")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for index in range(3):
         await database.save_turn("tenant", "session", SimpleNamespace(model_dump=lambda mode, index=index: {"turn_id": str(index), "question": f"question {index}", "answer": "answer", "created_at": now + timedelta(minutes=index), "archived": False}))
 
@@ -193,7 +193,7 @@ async def test_fact_extraction_version_conflict(memory_database, worker_sdks):
 async def test_retention_worker_purges_expired_sessions_and_keeps_active_ones(memory_database, worker_sdks):
     await seed_session_turns(memory_database)
     await memory_database.create_chat_session("tenant", "active", "job")
-    await memory_database.chat_sessions.update_one({"session_id": "session"}, {"$set": {"deleted_at": datetime.now(timezone.utc) - timedelta(days=40)}})
+    await memory_database.chat_sessions.update_one({"session_id": "session"}, {"$set": {"deleted_at": datetime.now(UTC) - timedelta(days=40)}})
     assert await purge_expired_sessions({}) == {"status": "purged", "sessions": 1, "turns": 3}
     assert await memory_database.get_chat_session("tenant", "active")
     assert await purge_expired_sessions({}) == {"status": "purged", "sessions": 0, "turns": 0}

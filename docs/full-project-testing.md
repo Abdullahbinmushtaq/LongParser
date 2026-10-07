@@ -114,8 +114,21 @@ ruff check .
 mypy src/longparser/
 ```
 
-The default command passes all 448 tests and the 95% coverage gate. Real embedding tests require the documented pinned model in the local cache. Remote Python 3.10–3.13 CI remains required. Local evidence is retained in `/tmp/longparser-full-project-*.log`, `/tmp/longparser-full-project-coverage.json`, and `/tmp/longparser-full-project-html/index.html`.
+The default command passes all 448 tests and the 95% coverage gate. Real embedding tests require the documented pinned model in the local cache. The current supported CI matrix is Python 3.11–3.13. Local evidence is retained in `/tmp/longparser-full-project-*.log`, `/tmp/longparser-full-project-coverage.json`, and `/tmp/longparser-full-project-html/index.html`.
 
 ## Repair validation
 
 The user explicitly authorized resolving the four failures. The latest full run passes all affected assertions without changing test expectations. The three production additions increase the denominator from 4,885 to 4,888 statements. Coverage remains whole-source statement coverage with no added exclusions. Informational mypy drops from 91 to 89 findings because both uninitialized-local findings are resolved.
+
+## Python support policy
+
+The user requested raising the minimum to Python 3.11 following Python 3.10 end of life on October 1, 2026. Packaging, CI, Ruff, mypy, installation instructions and contributor documentation now use that minimum. The original Python 3.10 CI failure remains undiagnosed because its detailed log was unavailable; removing the job changes the support policy and does not establish a bug fix. Historical test measurements retain the interpreter versions actually used. See the [official Python lifecycle](https://devguide.python.org/versions/).
+
+Validation after the support-policy update:
+
+- Full default suite on Python 3.13.15: **448 passed, 6 opt-in tests deselected**, with **95.97%** whole-source coverage (4,691 / 4,888 statements).
+- Focused extractor suite on Python 3.11.16: **62 passed**. This does not replace the full supported CI matrix.
+- Ruff, lockfile consistency, wheel/sdist build, Twine metadata checks and strict documentation build passed. The built wheel declares `Requires-Python: >=3.11` and advertises Python 3.11–3.13.
+- Informational mypy still reports **89 errors in 18 files**. Remote CI for these new changes remains pending.
+
+The lockfile was regenerated for the new minimum, pruning Python 3.10 resolution branches and selecting compatible dependency versions where necessary. Public schema enums retain their existing formatting behavior; UTC timestamps use Python 3.11's equivalent `datetime.UTC` alias.

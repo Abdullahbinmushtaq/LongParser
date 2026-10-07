@@ -1,6 +1,6 @@
 """Tenant-scoped persistence, review/versioning and memory through Database."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -72,7 +72,7 @@ async def test_review_progress_finalize_and_approved_chunk_selection(database):
 
 
 async def test_revision_history_is_ordered_and_tenant_scoped(database):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for kind, stamp in [("block", now), ("chunk", now - timedelta(minutes=1))]:
         revision = Revision(entity_type=kind, entity_id="id", action=ReviewStatus.EDITED, original_text="old", edited_text="new", timestamp=stamp)
         await database.create_revision("tenant", "job", revision)
@@ -106,7 +106,7 @@ async def test_chat_memory_updates_lock_versions_and_exclude_deleted_sessions(da
 
 async def test_turn_history_archival_idempotency_lookup_and_retention(database):
     await database.create_chat_session("tenant", "session", "job")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for index in range(3):
         turn = SimpleNamespace(model_dump=lambda mode, index=index: {"turn_id": str(index), "idempotency_key": f"key-{index}", "created_at": now + timedelta(minutes=index), "archived": False})
         await database.save_turn("tenant", "session", turn)

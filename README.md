@@ -18,7 +18,7 @@
       <img src="https://static.pepy.tech/badge/longparser/month" alt="Monthly Downloads">
     </a>
     <a href="https://www.python.org/">
-      <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg" alt="Python">
+      <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg" alt="Python">
     </a>
     <a href="LICENSE-THIRD-PARTY.md">
       <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="MIT License">
@@ -31,41 +31,21 @@
 
 ---
 
-## What LongParser does
 
-LongParser reads documents, extracts text and structure, and turns them into smaller chunks with source-page references. An embedding model converts those chunks into vectors. When someone asks a question, retrieval finds relevant chunks and supplies them to an LLM to generate an answer.
+## Python support
 
-```text
-Document → Extract text and structure → Chunk → Embed → Retrieve → Answer
-```
-
-Scanned pages need OCR to read text from images. Documents with usable text can be parsed directly; full-page OCR is optional. The default PDF extractor uses Docling with Tesseract CLI OCR when enabled.
-
-## Version and release status
-
-Package and runtime versions remain **0.1.5**. The next planned release is **0.1.6**, focused on regression tests, development checks and targeted fixes. All five implementation milestones are complete and tested locally; remote CI and release validation remain pending. These changes are recorded under [Unreleased in the changelog](CHANGELOG.md#unreleased--planned-016).
-
-| Area | Changes planned for 0.1.6 |
-|---|---|
-| Development checks | Enforce configured Ruff rules, strengthen import/license isolation tests, and run informational mypy checks. |
-| Coverage | Measure all production modules and enforce a 95% statement-coverage minimum. |
-| Chunking | Add hybrid and semantic chunking regressions, plus optional real embedding tests; fix source-page references for carried equation context. |
-| Pipeline | Test routing, PII, references, summaries and utilities; restore PyMuPDF construction and automatic fallback when its dependency is unavailable. |
-| Extractors | Test deterministic helpers, optional dependency guards and LaTeX OCR setup without loading OCR models. |
-
-Marker compatibility and official support remain deferred beyond this release.
-
+Python **3.11 or newer** is required. CI tests Python 3.11, 3.12 and 3.13. Python 3.10 support has been discontinued following its end of life; existing Python 3.10 users must upgrade for the upcoming release.
 
 ## Features
 
 | Feature | Detail |
 |---------|--------|
-| **Multi-format extraction** | PDF, DOCX, PPTX, XLSX and CSV via Docling; optional PyMuPDF for native PDFs |
-| **Hybrid chunking** | Estimated token budgets, heading hierarchy, table rows, lists, equations and optional overlap |
-| **Semantic chunking** | Optional cosine-similarity boundaries using SentenceTransformer embeddings; default model `all-MiniLM-L6-v2` |
+| **Multi-format extraction** | PDF, DOCX, PPTX, XLSX & CSV via Docling; optional PDF backends |
+| **Hybrid chunking** | Token-aware, heading-hierarchy-aware, table-aware |
+| **Semantic chunking** | Embedding-based boundaries using `all-MiniLM-L6-v2` |
 | **Cross-referencing** | Deterministic linking of explicit and implicit charts/figures |
 | **Quality scoring** | Zero-ML heuristic scoring with dictionary & fastText validation |
-| **PII redaction** | Optional regex and spaCy NER redaction; originals retained in block metadata for authorized HITL review |
+| **PII redaction** | Optional Regex + NER (spaCy) redaction with originals retained for HITL review |
 | **Summary chunks** | Async ARQ worker generating hierarchical LLM section summaries |
 | **HITL review** | Human-in-the-Loop block & chunk editing before embedding |
 | **LangGraph HITL** | `approve / edit / reject` workflow with LangGraph `interrupt()` and MongoDB checkpointer |
@@ -74,67 +54,59 @@ Marker compatibility and official support remain deferred beyond this release.
 | **Multi-backend vectors** | Chroma, FAISS, Qdrant |
 | **Production-ready API** | FastAPI + Motor (MongoDB) + ARQ + Redis (Queue & Rate Limiting) |
 | **Enterprise Security** | Tenant isolation, Role-Based Access Control (RBAC), and CORS |
-| **Integration adapters** | LangChain document loader and retriever; LlamaIndex document reader |
-| **Local document processing** | Extraction and local Hugging Face embeddings can run on your infrastructure; hosted embedding/LLM providers receive content sent to them |
+| **Integration adapters** | LangChain loader & retriever and LlamaIndex reader |
+| **Privacy-first** | Local extraction and embeddings; hosted LLM/embedding providers receive content sent to them |
 
 ---
 
 ## Installation
 
-### Full GPU bundle
+### GPU installation
 
 ```bash
 pip install "longparser[gpu]"
 ```
 
-Includes the server, SentenceTransformer embeddings, FAISS GPU, Chroma, pix2tex, PPTX helpers, LangChain and LlamaIndex. Qdrant, NER and optional extraction backends are separate extras. Choose the CPU bundle below for CPU-only environments.
+Includes the server, embeddings, FAISS GPU, Chroma, equation OCR, PPTX helpers, LangChain and LlamaIndex. Qdrant and optional extraction backends are separate extras.
+For CPU machines, use the CPU-only installation below.
 
-### Core SDK (without server extras)
+### Core SDK only (no server extras)
 
 ```bash
 pip install longparser
 ```
 
-Includes Docling and the declared core dependencies. Conversion dependencies may include torch and other model packages. Basic package/schema imports are lazy and do not initialize extraction or OCR models.
-
-For the default PDF OCR path, install the Tesseract executable and the language data you need on the host or in your container.
+Includes Docling and its dependencies, which may include PyTorch. The default PDF OCR path requires Tesseract and the appropriate language data.
 
 ### Pick only what you need
 
 | Extra | What it adds |
 |---|---|
 | `server` | FastAPI + MongoDB + Redis + LangChain chat |
-| `embeddings`, `embeddings-gpu`, `embeddings-cpu` | `sentence-transformers`; installed PyTorch determines CPU/GPU support |
+| `embeddings-gpu` | `sentence-transformers` (GPU) |
+| `embeddings-cpu` | `sentence-transformers` (preinstall CPU-only torch) |
 | `faiss-gpu` | FAISS GPU vector store |
 | `faiss-cpu` | FAISS CPU vector store |
 | `chroma` | ChromaDB |
 | `qdrant` | Qdrant |
-| `latex-ocr`, `latex-ocr-gpu`, `latex-ocr-cpu` | `pix2tex` equation OCR; installed PyTorch determines CPU/GPU support |
-| `pptx` | PowerPoint helpers for indentation detection |
-| `docx-equations` | DOCX/PPTX equation extraction helpers |
-| `mfd` | `pix2text` formula detection; requires local model setup |
-| `ner` | spaCy for contextual PII redaction; its language model is installed separately |
-| `pymupdf` | Native PDF extraction through PyMuPDF4LLM (AGPL component) |
-| `marker` | Experimental Marker backend (GPL component); compatibility validation deferred |
+| `latex-ocr-gpu` | `pix2tex` equation OCR (GPU) |
+| `latex-ocr-cpu` | `pix2tex` equation OCR (CPU) |
 | `langchain` | LangChain core adapter |
 | `llamaindex` | LlamaIndex reader adapter |
-| `gpu` | Server + GPU embedding/FAISS/OCR extras + Chroma + PPTX + integration adapters |
-| `cpu`, `all` | Corresponding CPU bundle; preinstall CPU PyTorch as shown below |
-| `dev` | pytest, coverage, Ruff, mypy and packaging checks |
+| `gpu` | Server, GPU embeddings/FAISS/OCR, Chroma, PPTX and adapters |
+| `cpu` | Corresponding CPU bundle; preinstall CPU-only torch |
 
-### CPU-only install
+### Advanced: CPU-only install (save ~1.8 GB)
 
 For Docker images, edge devices, or CI environments where CUDA isn't needed:
 
 ```bash
-# Step 1 — CPU PyTorch
+# Step 1 — CPU torch (~230 MB vs ~2 GB for CUDA)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Step 2 — LongParser CPU bundle
 pip install "longparser[cpu]"
 ```
-
-For optional backend licensing and import isolation, see [LICENSE-THIRD-PARTY.md](LICENSE-THIRD-PARTY.md).
 
 ---
 
@@ -146,20 +118,15 @@ For optional backend licensing and import isolation, see [LICENSE-THIRD-PARTY.md
 ```python
 from longparser import ChunkingConfig, DocumentPipeline, ProcessingConfig
 
-config = ProcessingConfig()
-pipeline = DocumentPipeline(config)
-result = pipeline.process_file("document.pdf", config=config)
-chunks = pipeline.chunk(result, ChunkingConfig())
+pipeline = DocumentPipeline(ProcessingConfig())
+result = pipeline.process_file("document.pdf")
+pipeline.chunk(result, ChunkingConfig())
 
 print(f"Pages: {result.document.metadata.total_pages}")
-print(f"Chunks: {len(chunks)}")
-if chunks:
-    print(chunks[0].text)
+print(f"Chunks: {len(result.chunks)}")
+if result.chunks:
+    print(result.chunks[0].text)
 ```
-
-`process_file()` extracts the document; `chunk()` creates and stores `result.chunks`. Embedding, indexing and retrieval are separate stages. To enable semantic boundaries, pass `ChunkingConfig(use_semantic_chunking=True)` and install an embedding extra.
-
-`max_tokens` is an estimated packing target, calculated from word counts. Indivisible blocks/rows, small-chunk merging and added context can exceed it. See [the chunking test guide](docs/chunking-tests.md#existing-token-budget-policy-dec-04) for the existing policy.
 
 ### REST API
 
@@ -206,21 +173,19 @@ curl -X POST http://localhost:8000/chat \
 ## Architecture
 
 ```
-Document → Extract → Validate → Chunk → HITL Review → Finalize → Embed → Index
-                                                                         ↓
-                                         Question → Retrieve → LLM → Answer
+Document → Extract → Validate → Chunk → HITL Review → Embed → Index
+                                                              ↓
+                                             Chat → RAG → LLM → Answer
 ```
 
 ### Pipeline Stages
 
-1. **Extract** — Docling converts documents into structured `Block` objects; optional PyMuPDF handles native PDFs. In `auto` mode, eligible native PDFs use PyMuPDF when available and fall back to Docling when its optional dependency is missing.
+1. **Extract** — Docling converts PDF/DOCX/etc. into structured `Block` objects
 2. **Validate** — Per-page confidence scoring and RTL detection
-3. **Chunk** — `HybridChunker` builds chunks with section hierarchy and source references; semantic boundaries are optional
-4. **HITL Review and finalize** — Human approves/edits/rejects blocks and chunks via the API before embedding
-5. **Embed and index** — Hugging Face or OpenAI embedding vectors are stored in Chroma/FAISS/Qdrant
-6. **Retrieve and chat** — Relevant chunks provide context for an LLM answer, with 3-layer memory and citation validation
-
-PII redaction is disabled by default. When enabled, it runs before chunking; originals remain in `Block.pii_redactions` for review. Redaction does not delete or encrypt those preserved values.
+3. **Chunk** — `HybridChunker` builds token-aware RAG chunks with section hierarchy
+4. **HITL Review** — Human approves/edits/rejects blocks and chunks via the API
+5. **Embed** — Embedding engine (HuggingFace / OpenAI) vectors stored in Chroma/FAISS/Qdrant
+6. **Chat** — LCEL chain with 3-layer memory and citation validation
 
 ---
 
@@ -229,9 +194,9 @@ PII redaction is disabled by default. When enabled, it runs before chunking; ori
 ```
 src/longparser/
 ├── schemas.py           ← core Pydantic models (Document, Block, Chunk, …)
-├── extractors/          ← Docling, optional PDF backends, LaTeX OCR
-├── chunkers/            ← HybridChunker, semantic boundaries, quality scorer
-├── pipeline/            ← DocumentPipeline, PII, references, summary helpers
+├── extractors/          ← Docling, LaTeX OCR backends
+├── chunkers/            ← HybridChunker
+├── pipeline/            ← DocumentPipeline
 ├── integrations/        ← LangChain loader & LlamaIndex reader
 ├── utils/               ← shared helpers (RTL detection, …)
 └── server/              ← REST API layer
@@ -286,10 +251,7 @@ Copy `.env.example` to `.env` and set:
 | `LONGPARSER_VECTOR_DB` | `chroma` | Vector store backend |
 | `LONGPARSER_CORS_ORIGINS` | `*` | Allowed CORS origins |
 | `LONGPARSER_RATE_LIMIT` | `60` | Max RPM per tenant |
-| `LONGPARSER_ADMIN_KEYS` | (empty) | Comma-separated admin API keys; empty retains the existing all-users-admin behavior |
-| `LONGPARSER_DO_OCR` | `true` | Worker text OCR toggle |
-| `LONGPARSER_FORMULA_OCR` | `true` | Worker equation OCR toggle, independent of text OCR |
-| `LONGPARSER_GENERATE_SUMMARIES` | `false` | Enqueue LLM summary enrichment after extraction |
+| `LONGPARSER_ADMIN_KEYS` | (empty) | Comma-separated admin API keys; if empty, all users are admins |
 
 ---
 
@@ -306,58 +268,26 @@ API available at `http://localhost:8000` · Docs at `http://localhost:8000/docs`
 
 ## Testing
 
-Run these commands from the repository root. The default suite uses controlled external dependencies and does not need live MongoDB/Redis services, provider calls or OCR/model inference.
-
 ```bash
-# Install the same development/server extras used by CI
-python -m pip install -e '.[dev,server]'
+# Install development and server dependencies
+uv sync --extra dev --extra server
 
-# Run the full default suite with whole-production coverage
-python -m pytest tests/ --cov=longparser --cov-report=term-missing
+# Run unit tests
+uv run pytest tests/unit/ -v
 
-# Enforce configured lint rules
-ruff check .
+# Run with coverage
+uv run pytest tests/ --cov=longparser --cov-report=term-missing
 
-# Informational type check (currently non-blocking in CI)
-mypy src/longparser/
+# Check configured lint rules
+uv run ruff check .
 
-# Run a focused test group
-python -m pytest tests/unit/test_extractors.py
+# Informational type checking
+uv run mypy src/longparser/
 ```
 
-### Optional real embedding tests
-
-These six tests run actual CPU inference with a pinned `sentence-transformers/all-MiniLM-L6-v2` snapshot. Install the embedding dependencies and cache the required revision using [the preparation instructions](docs/chunking-tests.md#prepare-the-optional-real-model-environment), then run:
-
-```bash
-OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -m pytest \
-  tests/integration/test_real_embeddings.py --run-real-embeddings --no-cov
-```
-
-They run offline, are deselected in default CI, and fail an explicit run if dependencies or local assets are missing. The small labelled fixture checks model integration and boundary decisions; it does not measure general retrieval or extraction accuracy.
-
-### Completed Milestone 5 verification (historical)
-
-| Check | Result after Milestone 5 |
-|---|---|
-| Full default suite, Python 3.13 | **287 passed**; 6 real embedding tests deselected |
-| Optional real embedding suite | **6 passed** separately |
-| Focused extractor tests | **62 passed** on Python 3.10, 3.11, 3.12 and 3.13, including minimal-dependency environments |
-| Whole-production statement coverage | **47.53%** across 40 modules; enforced minimum **45%** |
-| Ruff | Passed |
-| Mypy | 91 existing findings; informational and non-blocking |
-| Package build and metadata | Wheel and source distribution built; both pass Twine checks |
-| Documentation build | Passed with `mkdocs build --strict` |
-| Clean core install and real parse | Built wheel installed in a fresh environment; real DOCX extraction and explicit chunking passed |
-| Remote CI | Pending; the full Python 3.10–3.13 suite and packaging checks still need remote verification |
-
-Coverage includes all production modules and measures code execution, not document/model accuracy. See the [combined validation report](docs/combined-validation.md), [coverage policy](docs/coverage-policy.md), [chunking tests](docs/chunking-tests.md), [pipeline tests](docs/pipeline-tests.md) and [extractor tests](docs/extractor-tests.md) for scope, evidence and remaining validation.
+Coverage includes all production modules with a 95% minimum. Mypy is non-blocking in CI. See [Testing documentation](docs/full-project-testing.md) for validation details.
 
 ---
-
-### Full-project testing expansion
-
-The expanded local suite reaches **95.97% whole-production coverage**, and the enforced minimum is now **95%**. All **448 default tests pass**, including the repaired search-scope, Docling conversion-state and wide-table regressions. All six real embedding tests pass separately. See the [full-project test report](docs/full-project-testing.md) for scope, module coverage and resolved defects. Remote CI and release acceptance remain pending.
 
 ## Contributing
 

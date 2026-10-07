@@ -22,7 +22,7 @@ import time as _time
 import uuid
 import zipfile
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import redis.asyncio as redis
@@ -790,7 +790,7 @@ async def finalize_job(
 
     await db.update_job(tenant_id, job_id, {
         "status": "finalized",
-        "finalized_at": datetime.now(timezone.utc),
+        "finalized_at": datetime.now(UTC),
     })
 
     return {"status": "finalized", "job_id": job_id, "policy": body.finalize_policy.value}

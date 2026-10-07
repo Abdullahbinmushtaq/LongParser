@@ -125,7 +125,7 @@ Local logs, coverage JSON, dependency constraints, artifact hashes and smoke JSO
 ## Remaining work
 
 1. Commit the final documentation/validation follow-up as appropriate; preserve the earlier user `.gitignore` change separately.
-2. Push the implementation branch and open its single combined PR; verify full remote Python 3.10–3.13 CI and submit final evidence.
+2. Push the implementation branch and open its single combined PR; verify the current supported remote Python 3.11–3.13 CI matrix and submit final evidence.
 3. Obtain maintainer review and merge.
 4. Prepare the separate release PR: matched `0.1.6` versions, final release changelog, committed roadmap/scope record, release artifact/import/parse checks and publication prerequisites.
 5. Verify the published artifact after release. Marker support remains deferred.

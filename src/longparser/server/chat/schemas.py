@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -136,7 +136,7 @@ class Turn(BaseModel):
     sources: list[SourceRef] = Field(default_factory=list)
     archived: bool = False
     idempotency_key: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Fact(BaseModel):
@@ -146,7 +146,7 @@ class Fact(BaseModel):
     fact: str
     supporting_chunk_ids: list[str] = Field(default_factory=list)
     confidence: float = 0.0
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class SessionInfo(BaseModel):

@@ -73,3 +73,7 @@ uv pip install --python /tmp/longparser-extractor-tests/bin/python \
 ```
 
 The existing Python 3.13 minimal environment was reused; separate temporary environments verified Python 3.10–3.12. Python-specific Pydantic wheels were downloaded during setup where absent from cache; the test runs themselves stayed offline. Package/runtime remains `0.1.5`, with `0.1.6` the target release. Nothing is pushed or published by these checks.
+
+## Current support minimum
+
+The Python 3.10 results above are historical verification evidence. The upcoming release requires Python 3.11 or newer, with supported CI jobs on Python 3.11–3.13.
