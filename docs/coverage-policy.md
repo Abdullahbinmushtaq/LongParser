@@ -85,7 +85,7 @@ Milestone 5 adds 62 focused extractor/helper/guard cases without production chan
 
 The selected Docling helper slice has 199 of 202 statements covered (98.51%); the entire Docling extractor is 25.00%. These are different denominators. [Extractor test documentation](extractor-tests.md) records the selected functions, case mapping, return-contract discrepancy and remaining conversion/model paths.
 
-## Enforced minimum after Milestone 5
+## Historical enforced minimum after Milestone 5
 
 `fail_under = 45` replaces the historical 17% provisional floor. The completed local default-suite measurement is 47.53%; rounding down after allowing roughly two percentage points leaves **2.53 points of headroom** (about 124 statements). This is an evidence-based stronger gate, not a claim of 90% whole-project coverage.
 
@@ -96,7 +96,7 @@ Before submitting/releasing the combined implementation:
 1. Validate the 45% floor against the full Python 3.10–3.13 CI matrix and review any environment-dependent coverage changes.
 2. Keep the same whole-production denominator and active regression assertions. Do not restore broad omissions or bypass coverage to get a passing result.
 3. Re-measure after any further source changes; explain denominator changes separately from added execution. Adjust a gate only with documented evidence and a small justified margin.
-4. Complete the remaining combined review, real installation smoke, package build and release checks in the implementation/release plan.
+4. The [combined review, clean-wheel DOCX smoke check and package/docs builds](combined-validation.md) now pass locally. Repeat the applicable artifact/smoke checks after the separate release version bump and complete the remaining release checks.
 
 Remote CI has not run because the implementation branch has not been pushed. The 45% gate is locally verified; full-matrix and release acceptance are pending. Historical milestone measurements above retain their original denominator and gate values for comparison.
 
@@ -117,3 +117,9 @@ From the repository root, with the development and server dependencies installed
 ```
 
 The mypy command exits nonzero while its baseline findings remain; this is expected for the informational step. Review JSON coverage totals and file sets when comparing measurements, not only the headline percentage.
+
+## Full-project expansion: current 95% minimum
+
+The subsequently requested whole-project test expansion reaches **95.97%** (4,691 / 4,888 statements across the same 40 modules) on Python 3.13.15. The enforced minimum is now **95%**. No new omissions or exclusions were added. The approved wide-table correction keeps its statement count; the subsequent approved Docling repairs add three statements.
+
+This checkpoint has **448 passing tests, zero failures and six real-model tests deselected**. The six real-model tests pass separately. All four previously failing defect regressions pass after the user-approved fixes. The [full-project report](full-project-testing.md) records module-level coverage, newly discovered defects, approval status, SDK boundaries and remaining validation. The earlier milestone measurements and 45% policy above are historical evidence, not the current gate.

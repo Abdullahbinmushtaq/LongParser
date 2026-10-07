@@ -929,9 +929,9 @@ async def search(body: SearchRequest, x_api_key: str = Header(...)):
     )
 
     filters = {
+        **body.filters,
         "tenant_id": tenant_id,
         "job_id": body.job_id,
-        **body.filters,
     }
     raw_results = store.search(query_embedding, top_k=body.top_k, filters=filters)
 
@@ -1156,4 +1156,3 @@ async def resume_chat(
 async def health():
     """Health check endpoint."""
     return {"status": "ok", "service": "longparser-api"}
-

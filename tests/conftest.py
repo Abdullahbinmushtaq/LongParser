@@ -99,6 +99,17 @@ def processing_config() -> ProcessingConfig:
     return ProcessingConfig()
 
 
+@pytest.fixture
+def memory_database(monkeypatch):
+    """Run the real Database interface against a controlled Motor boundary."""
+    import longparser.server.db as module
+    from tests.memory_mongo import MotorClient
+
+    client = MotorClient()
+    monkeypatch.setattr(module, "AsyncIOMotorClient", lambda *args, **kwargs: client)
+    return module.Database("mongodb://memory.test")
+
+
 def pytest_addoption(parser):
     parser.addoption(
         "--run-real-embeddings", action="store_true", default=False,

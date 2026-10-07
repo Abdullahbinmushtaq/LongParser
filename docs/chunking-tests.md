@@ -53,7 +53,7 @@ The fixture selects the immutable local snapshot with `local_files_only=True`, s
 
 ## Fixed labelled evaluation
 
-[`tests/fixtures/semantic_documents.json`](../tests/fixtures/semantic_documents.json) contains four three-block documents. Labels and rationales were written before the first model inference:
+[`tests/fixtures/semantic_documents.json`](https://github.com/ENDEVSOLS/LongParser/blob/main/tests/fixtures/semantic_documents.json) contains four three-block documents. Labels and rationales were written before the first model inference:
 
 | Document | Expected boundaries (zero-based, before the block) | Reason |
 |---|---|---|

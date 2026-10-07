@@ -405,3 +405,48 @@ def test_header_footer_filter_can_be_disabled(small_config):
     assert [c.text for c in filtered] == ["Body text"]
     retained = HybridChunker(small_config.model_copy(update={"exclude_headers_footers": False})).chunk(blocks)
     assert [c.text for c in retained] == ["Document header\n\nBody text\n\nDocument footer"]
+
+
+@pytest.mark.parametrize("sections,counts,equations,expected", [
+    (["A", "A"], [1, 20], [True, False], 1),
+    (["A", "B"], [1, 20], [True, False], 1),
+    (["A", "B"], [20, 1], [False, True], 1),
+    (["A"], [1], [True], 1),
+    (["A", "A"], [20, 1], [False, True], 1),
+])
+def test_small_chunk_merging_preserves_content_sources_pages_and_equations(sections, counts, equations, expected):
+    from longparser.schemas import ChunkingConfig
+    chunks = [Chunk(text=f"part-{i}", token_count=count, chunk_type="section", section_path=[section],
+                    block_ids=[f"block-{i}"], page_numbers=[i], equation_detected=equation)
+              for i, (section, count, equation) in enumerate(zip(sections, counts, equations, strict=True))]
+    merged = HybridChunker(ChunkingConfig(min_tokens=10))._merge_small_chunks(chunks)
+    assert len(merged) == expected
+    assert merged[0].text == "\n\n".join(f"part-{i}" for i in range(len(chunks)))
+    assert merged[0].block_ids == [f"block-{i}" for i in range(len(chunks))]
+    assert merged[0].page_numbers == list(range(len(chunks)))
+    assert merged[0].equation_detected
+    if len(chunks) > 1:
+        assert merged[0].chunk_type == "equation"
+
+
+def test_overlap_does_not_duplicate_equation_regions():
+    from longparser.schemas import ChunkingConfig
+    chunks = [Chunk(text="⟦EQUATION⟧\nx+y\n⟦/EQUATION⟧", token_count=20, chunk_type="equation"),
+              Chunk(text="explanation", token_count=1, chunk_type="section")]
+    HybridChunker(ChunkingConfig(overlap_blocks=1))._apply_overlap(chunks)
+    assert chunks[1].text == "explanation" and not chunks[1].overlap_with_previous
+
+
+@pytest.mark.parametrize("table_format", ["row_record", "pipe"])
+def test_wide_table_banding_repeats_key_and_preserves_every_value(table_format):
+    from longparser.schemas import ChunkingConfig
+    cells = [TableCell(r0=row, c0=column, text=f"column-{column}" if row == 0 else f"value-{column}")
+             for row in range(2) for column in range(30)]
+    block = make_block("Wide table", BlockType.TABLE)
+    block.table = Table(n_rows=2, n_cols=30, cells=cells)
+    chunks = HybridChunker(ChunkingConfig(min_tokens=0, max_tokens=1000, wide_table_col_threshold=25,
+                                        generate_schema_chunks=False, table_chunk_format=table_format)).chunk([block])
+    assert len(chunks) == 3
+    assert all("value-0" in chunk.text for chunk in chunks)
+    assert all(f"value-{column}" in "\n".join(chunk.text for chunk in chunks) for column in range(30))
+    assert all(chunk.block_ids == [block.block_id] for chunk in chunks)

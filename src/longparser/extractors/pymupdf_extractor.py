@@ -212,7 +212,22 @@ class PyMuPDFExtractor(BaseExtractor):
         page_number: int,
         config: ProcessingConfig,
     ) -> Page:
-        """Return a 0-indexed page with its original dimensions and provenance."""
+        """Extract the document and return one page with its original provenance.
+
+        Args:
+            file_path: PDF document to extract.
+            page_number: Zero-based index of the requested page.
+            config: Processing options passed to whole-document extraction.
+
+        Returns:
+            The selected Page with its original one-based page number,
+            dimensions and block source references.
+
+        Raises:
+            ValueError: If the requested page is not present in the document.
+
+        This method converts the whole document before selecting the page.
+        """
         document, _ = self.extract(file_path, config)
         for page in document.pages:
             if page.page_number == page_number + 1:

@@ -9,6 +9,8 @@ This project follows [Semantic Versioning](https://semver.org/) and
 
 ### Added
 
+- Whole-project regression tests for HTTP API/review/chat, database, workers, queues, embedding/vector adapters, integrations and conversion/OCR orchestration with controlled external SDKs.
+
 - Extractor classification, heading/hierarchy, page-validation, optional-backend guard and LaTeX OCR setup tests, verified without model dependencies on Python 3.10–3.13.
 - Offline pipeline, PII redaction, reference, summary and language/RTL/OCR regression tests, with a separate minimal-dependency verification environment and fresh-process default-routing isolation check.
 - Controlled regression tests for hybrid chunking, provenance, quality scoring and semantic boundary edge cases, using offline external-resource stubs.
@@ -16,16 +18,21 @@ This project follows [Semantic Versioning](https://semver.org/) and
 
 ### Changed
 
-- Raised the whole-production coverage minimum from the provisional 17% to 45%, based on 47.53% measured coverage after the planned test milestones; full CI matrix validation remains pending.
+- Raised the whole-production coverage minimum to 95% after the expanded suite reaches 95.97%; the earlier milestone checkpoint was 47.53% with a 45% minimum. Full CI matrix validation remains pending.
 - CI now enforces all configured Ruff rules, with reviewed import and Python 3.10+ annotation cleanup.
 - FastAPI dependency defaults retain their existing behavior through a targeted `B008` exception for the server application.
 - The license check detects bare and dotted Marker imports in core files while retaining the two isolated extractor exceptions.
 - Added regression tests that execute the actual license-check workflow script and verify lightweight imports in a fresh Python process.
-- Coverage now includes every production module, with a measured 18.96% baseline and a provisional 17% minimum; the final gate will be raised after the planned test milestones.
+- Coverage now includes every production module; the initial 18.96% baseline used a provisional 17% minimum before the completed milestones raised the gate to 45%.
 - Added non-blocking informational mypy checks to CI and documented the coverage measurement policy.
 - Removed the unused, empty server routers package and its stale documentation reference; API routes remain in `app.py`.
 
 ### Fixed
+
+- Search filters preserve authenticated tenant and selected job scope even when caller filters contain those keys.
+- Docling image export initializes and captures the latest successful extraction result; smart formula mode initializes OCR before math detection when no formula blocks are found.
+
+- Wide-table column groups retain every selected value in both row-record and pipe formats by mapping selected columns to local indexes.
 
 - PyMuPDF extraction can now instantiate by implementing the required single-page method, preserving selected-page dimensions and source references and reporting invalid page requests clearly.
 - Automatic native-PDF routing now falls back to Docling when the PyMuPDF constructor reports a missing optional dependency, including normal OCR language resolution.
@@ -144,4 +151,3 @@ for production RAG pipelines.
   `chroma`, `faiss`, `qdrant` optional extras
 - **`Dockerfile`** and **`docker-compose.yml`** for one-command local deployment
 - **`CONTRIBUTING.md`**, **`SECURITY.md`**, **`.env.example`** — full OSS scaffolding
-

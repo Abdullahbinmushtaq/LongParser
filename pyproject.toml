@@ -243,10 +243,10 @@ source = ["src/longparser"]
 
 [tool.coverage.report]
 show_missing = true
-# Milestones 3–5 reach 47.53% across all production modules on Python 3.13.
-# 45% leaves 2.53 points of headroom; full CI matrix validation is still required.
+# Full-project tests now exceed 95% across all production modules on Python 3.13.
+# The default CI suite enforces 95%; full remote matrix validation remains pending.
 # Measurement scope and gate rationale: docs/coverage-policy.md.
-fail_under = 45
+fail_under = 95
 
 # CPU-only PyTorch index — saves ~2.3 GB vs CUDA build
 [[tool.uv.index]]

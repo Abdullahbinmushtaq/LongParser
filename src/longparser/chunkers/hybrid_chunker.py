@@ -443,7 +443,8 @@ def _chunk_table(block: Block, config: ChunkingConfig) -> list[Chunk]:
         chunk_row_start = data_row_indices[0] if data_row_indices else 0
         
         for r_idx in data_row_indices:
-            row_data = {c: grid.get(r_idx, {}).get(c, "") for c in band_cols}
+            row_data = {band_index: grid.get(r_idx, {}).get(column, "")
+                        for band_index, column in enumerate(band_cols)}
             
             # Fix D: Render based on format
             if config.table_chunk_format == "row_record":

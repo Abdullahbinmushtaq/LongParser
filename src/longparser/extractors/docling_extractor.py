@@ -169,6 +169,7 @@ class DoclingExtractor(BaseExtractor):
             force_full_page_ocr: If True, OCR entire page even if embedded text exists.
                                  Required for PDFs with broken Unicode mapping.
         """
+        self._last_result = None
         self._converter = None
         self._chunker = None
         self._initialized = False
@@ -324,20 +325,20 @@ class DoclingExtractor(BaseExtractor):
 
             # Find equation items (FORMULA-labeled blocks only)
             equation_items = self._find_equation_items(result.document)
+            processed = 0
+            backend = os.getenv("LONGPARSER_LATEX_OCR_BACKEND", "pix2tex")
+            try:
+                from .latex_ocr import LaTeXOCR
+                ocr = LaTeXOCR(backend=backend)
+            except ImportError:
+                ocr = None
+                logger.warning("latex_ocr module not available. Skipping formula OCR.")
             
             if equation_items:
                 # Merge adjacent formula fragments
                 merged_items, union_bboxes, blank_ids = self._merge_adjacent_formulas(
                     equation_items, result.document
                 )
-                
-                backend = os.getenv("LONGPARSER_LATEX_OCR_BACKEND", "pix2tex")
-                try:
-                    from .latex_ocr import LaTeXOCR
-                    ocr = LaTeXOCR(backend=backend)
-                except ImportError:
-                    ocr = None
-                    logger.warning("latex_ocr module not available. Skipping formula OCR.")
                 
                 if ocr and ocr.available:
                     processed, t0 = 0, time.monotonic()
@@ -1286,6 +1287,7 @@ class DoclingExtractor(BaseExtractor):
         
         # Get conversion result (cached or new)
         result = self._run_docling(file_path, config)
+        self._last_result = result
         docling_doc = result.document
         
         # Build PPTX-specific indent map if applicable
