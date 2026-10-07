@@ -49,6 +49,24 @@ This measurement comes from **120 passing tests**, including both corrected prov
 
 See [chunking tests](chunking-tests.md) for commands and the fixed labelled evaluation, and [equation page provenance](issues/equation-page-provenance.md) for the authorized repair and release disposition. Final coverage gate selection remains scheduled after Milestones 3–5. The informational mypy run reports 93 errors in 18 files; the carried-ID guard also resolves the prior optional-ID typing error in the chunker, with no new typing findings from the repair.
 
+## Milestone 4 verified measurement
+
+The new pipeline/privacy/reference/summary/utility tests raise full-source coverage to **40.41%** (1,974 of 4,885 statements across the same 40 production files). The authorized PyMuPDF construction/page-selection and auto-fallback repair adds nine measured statements to the Milestone 3 denominator of 4,876. Coverage exclusions and the 17% provisional floor stay unchanged.
+
+| Module | Covered / measured statements | Coverage |
+|---|---:|---:|
+| Pipeline orchestrator | 125 / 182 | 68.68% |
+| PII redactor | 137 / 144 | 95.14% |
+| Cross-reference resolver | 95 / 99 | 95.96% |
+| Summary enrichment | 56 / 56 | 100.00% |
+| Language helpers | 62 / 64 | 96.88% |
+| OCR routing | 29 / 29 | 100.00% |
+| RTL helpers | 28 / 29 | 96.55% |
+
+This measurement comes from **225 passing default-suite tests**, including all five repaired PyMuPDF regression cases, with six real-model tests deselected. Both pytest and the coverage floor pass. The separate six-test real-model run also passes and is not included in these coverage totals. The [repair disposition](issues/pymupdf-construction-and-auto-fallback.md) records explicit user authorization. Informational mypy reports 91 remaining errors in 18 files, down from 93; the repair resolves the two prior abstract-construction errors without adding new findings.
+
+[Pipeline test documentation](pipeline-tests.md) records the scope, minimal-environment evidence and reproduction commands. Coverage reflects statement execution, including controlled external resources; it does not prove real PDF/OCR quality, general PII completeness or live provider availability.
+
 ## Provisional and final minimum
 
 `fail_under = 17` is an intermediate floor derived from the measured 18.96% baseline. It leaves 1.96 percentage points of headroom for small interpreter/environment differences while providing a stronger check than the previous 5% gate. Local validation covers Python 3.13; the unchanged CI matrix runs Python 3.10–3.13.
